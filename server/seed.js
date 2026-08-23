@@ -13,15 +13,20 @@ const seedDB = async () => {
       process.exit(1);
     }
 
-    await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB Atlas for seeding...');
+    console.log('Connecting to MongoDB Atlas...');
+    await mongoose.connect(mongoUri, {
+      tls: true,
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000
+    });
+    console.log('✅ Connected to MongoDB Atlas for seeding!');
 
     await Product.deleteMany({});
     console.log('🗑️ Cleared existing products.');
 
     const formattedProducts = initialProducts.map(({ _id, ...rest }) => rest);
     await Product.insertMany(formattedProducts);
-    console.log('✨ Successfully seeded initial watches catalog into MongoDB!');
+    console.log('✨ Successfully seeded initial watches catalog into MongoDB Atlas!');
 
     process.exit(0);
   } catch (error) {
