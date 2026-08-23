@@ -1,0 +1,11 @@
+{
+  "name": "the-watch-lab",
+  "version": "1.0.0",
+  "description": "The Watch Lab - Luxury Watch Dropshipping Fullstack App",
+  "scripts": {
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "seed": "npm run seed --prefix server",
+    "build": "npm run build --prefix client"
+  }
+}
