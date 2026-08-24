@@ -89,13 +89,24 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     await connectDB();
-    if (mongoose.connection.readyState === 1) {
-      const product = new Product(req.body);
-      const createdProduct = await product.save();
-      return res.status(201).json(createdProduct);
+    const { _id, id, ...cleanProductData } = req.body;
+
+    if (!cleanProductData.description) {
+      cleanProductData.description = `${cleanProductData.title} precision timepiece.`;
     }
-    
-    // In-memory response if DB disconnected
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const product = new Product(cleanProductData);
+        const createdProduct = await product.save();
+        console.log(`✅ Saved new watch model to MongoDB Atlas! ID: ${createdProduct._id}`);
+        return res.status(201).json(createdProduct);
+      } catch (dbErr) {
+        console.error('❌ Error saving product to DB:', dbErr.message);
+        return res.status(400).json({ message: dbErr.message });
+      }
+    }
+
     const mockCreated = { ...req.body, _id: `mem_${Date.now()}` };
     res.status(201).json(mockCreated);
   } catch (error) {
