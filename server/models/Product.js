@@ -6,6 +6,9 @@ const productSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   originalPrice: { type: Number },
+  supplierPrice: { type: Number, default: 45 },
+  supplierUrl: { type: String, default: "https://www.aliexpress.com" },
+  affiliateUrl: { type: String },
   category: { 
     type: String, 
     required: true,
