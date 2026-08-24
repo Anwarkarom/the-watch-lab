@@ -1,16 +1,23 @@
 import mongoose from 'mongoose';
 
+// Disable command buffering so requests fail fast & fallback instantly if DB is not connected
+mongoose.set('bufferCommands', false);
+
 export const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/the_watch_lab';
-    const conn = await mongoose.connect(mongoUri, {
+    await mongoose.connect(mongoUri, {
       tls: true,
-      serverSelectionTimeoutMS: 15000,
-      connectTimeoutMS: 15000
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000
     });
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log('✅ MongoDB Connected successfully!');
   } catch (error) {
-    console.error(`⚠️ MongoDB Atlas Connection Note: ${error.message}`);
-    console.log(`ℹ️ Server operating with dynamic catalog fallback if Atlas is offline.`);
+    console.warn(`⚠️ MongoDB Atlas Connection Note: ${error.message}`);
+    console.log(`ℹ️ API operating with dynamic fallback catalog.`);
   }
 };

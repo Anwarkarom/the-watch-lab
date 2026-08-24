@@ -1,12 +1,13 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Order from '../models/Order.js';
+import { connectDB } from '../config/db.js';
 
 const router = express.Router();
 
-// In-memory fallback orders storage if MongoDB is disconnected
+// In-memory fallback orders storage
 const inMemoryOrders = [];
 
-// Helper to generate unique tracking number
 const generateTrackingNumber = () => {
   const randomDigits = Math.floor(100000 + Math.random() * 900000);
   return `TWL-${randomDigits}`;
@@ -15,6 +16,7 @@ const generateTrackingNumber = () => {
 // POST create new order
 router.post('/', async (req, res) => {
   try {
+    await connectDB();
     const { customer, items, totalAmount, currency, paymentMethod } = req.body;
 
     if (!customer || !customer.fullName || !customer.phone || !customer.address) {
@@ -39,11 +41,16 @@ router.post('/', async (req, res) => {
     };
 
     let newOrder;
-    try {
-      const order = new Order(orderData);
-      newOrder = await order.save();
-    } catch (dbErr) {
-      console.log('Saved order to in-memory store (DB fallback)');
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const order = new Order(orderData);
+        newOrder = await order.save();
+      } catch (dbErr) {
+        console.warn('DB save error, storing in memory:', dbErr.message);
+      }
+    }
+
+    if (!newOrder) {
       newOrder = { ...orderData, _id: `mem_${Date.now()}` };
       inMemoryOrders.unshift(newOrder);
     }
@@ -62,12 +69,15 @@ router.post('/', async (req, res) => {
 // GET track order by tracking number
 router.get('/track/:trackingNumber', async (req, res) => {
   try {
+    await connectDB();
     const { trackingNumber } = req.params;
     let order;
 
-    try {
-      order = await Order.findOne({ trackingNumber: trackingNumber.toUpperCase() });
-    } catch (err) {}
+    if (mongoose.connection.readyState === 1) {
+      try {
+        order = await Order.findOne({ trackingNumber: trackingNumber.toUpperCase() });
+      } catch (err) {}
+    }
 
     if (!order) {
       order = inMemoryOrders.find(o => o.trackingNumber.toUpperCase() === trackingNumber.toUpperCase());
@@ -86,10 +96,14 @@ router.get('/track/:trackingNumber', async (req, res) => {
 // GET all orders (Admin)
 router.get('/', async (req, res) => {
   try {
+    await connectDB();
     let orders = [];
-    try {
-      orders = await Order.find().sort({ createdAt: -1 });
-    } catch (err) {}
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        orders = await Order.find().sort({ createdAt: -1 });
+      } catch (err) {}
+    }
 
     if (!orders || orders.length === 0) {
       orders = inMemoryOrders;
@@ -97,20 +111,23 @@ router.get('/', async (req, res) => {
 
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(inMemoryOrders);
   }
 });
 
 // PATCH update order status (Admin)
 router.patch('/:id/status', async (req, res) => {
   try {
+    await connectDB();
     const { status } = req.body;
     const { id } = req.params;
 
     let updatedOrder;
-    try {
-      updatedOrder = await Order.findByIdAndUpdate(id, { status }, { new: true });
-    } catch (err) {}
+    if (mongoose.connection.readyState === 1) {
+      try {
+        updatedOrder = await Order.findByIdAndUpdate(id, { status }, { new: true });
+      } catch (err) {}
+    }
 
     if (!updatedOrder) {
       const orderInMem = inMemoryOrders.find(o => o._id === id);
