@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import axios from 'axios';
-import { X, LayoutDashboard, DollarSign, Package, TrendingUp, ExternalLink, RefreshCcw, Plus, ShoppingCart, Sparkles } from 'lucide-react';
+import { X, LayoutDashboard, DollarSign, Package, TrendingUp, ExternalLink, RefreshCcw, Plus, ShoppingCart, Sparkles, LogOut } from 'lucide-react';
 
 export const AdminDashboard = () => {
   const { 
     isAdminOpen, 
     setIsAdminOpen, 
+    adminLogout,
     products, 
     setProducts,
     formatPrice, 
@@ -122,6 +123,14 @@ export const AdminDashboard = () => {
               title="Refresh Data"
             >
               <RefreshCcw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={adminLogout}
+              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5"
+              title="Logout Admin"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
             <button
               onClick={() => setIsAdminOpen(false)}

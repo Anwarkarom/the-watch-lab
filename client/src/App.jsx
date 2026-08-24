@@ -10,6 +10,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { OrderTracking } from './components/OrderTracking';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { Footer } from './components/Footer';
 
 export function App() {
@@ -37,6 +38,7 @@ export function App() {
         <CartDrawer />
         <CheckoutModal />
         <OrderTracking />
+        <AdminLoginModal />
         <AdminDashboard />
       </div>
     </StoreProvider>

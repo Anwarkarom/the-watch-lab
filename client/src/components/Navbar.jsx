@@ -11,6 +11,8 @@ export const Navbar = () => {
     setIsCartOpen, 
     setIsTrackingOpen, 
     setIsAdminOpen,
+    setIsAdminLoginOpen,
+    isAdminAuthenticated,
     searchQuery, 
     setSearchQuery,
     setCategory
@@ -105,12 +107,12 @@ export const Navbar = () => {
 
             {/* Admin Toggle */}
             <button
-              onClick={() => setIsAdminOpen(true)}
+              onClick={() => isAdminAuthenticated ? setIsAdminOpen(true) : setIsAdminLoginOpen(true)}
               className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-amber-400 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
               title="Admin Dashboard"
             >
               <LayoutDashboard className="w-4 h-4 text-amber-500" />
-              <span>Admin</span>
+              <span>{isAdminAuthenticated ? 'Admin Panel' : 'Seller Access'}</span>
             </button>
 
             {/* Wishlist */}

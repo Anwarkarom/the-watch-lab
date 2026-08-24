@@ -34,8 +34,30 @@ export const StoreProvider = ({ children }) => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return localStorage.getItem('twl_admin_auth') === 'true';
+  });
   const [lastPlacedOrder, setLastPlacedOrder] = useState(null);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+
+  const adminLogin = (passcode) => {
+    // Default admin passcode: admin123 (or custom)
+    if (passcode === 'admin123' || passcode === 'WATCHLAB2026') {
+      setIsAdminAuthenticated(true);
+      localStorage.setItem('twl_admin_auth', 'true');
+      setIsAdminLoginOpen(false);
+      setIsAdminOpen(true);
+      return { success: true, message: 'Access Granted! Welcome Admin.' };
+    }
+    return { success: false, message: 'Incorrect Admin Passcode.' };
+  };
+
+  const adminLogout = () => {
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem('twl_admin_auth');
+    setIsAdminOpen(false);
+  };
 
   // Sync Cart to LocalStorage
   useEffect(() => {
@@ -225,6 +247,8 @@ export const StoreProvider = ({ children }) => {
       isCheckoutOpen, setIsCheckoutOpen,
       isTrackingOpen, setIsTrackingOpen,
       isAdminOpen, setIsAdminOpen,
+      isAdminLoginOpen, setIsAdminLoginOpen,
+      isAdminAuthenticated, adminLogin, adminLogout,
       lastPlacedOrder, setLastPlacedOrder,
       cartSubtotalUSD,
       discountAmountUSD,
