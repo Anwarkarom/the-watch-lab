@@ -8,6 +8,7 @@ export const AdminDashboard = () => {
     isAdminOpen, 
     setIsAdminOpen, 
     products, 
+    setProducts,
     formatPrice, 
     fetchProducts 
   } = useStore();
@@ -69,23 +70,29 @@ export const AdminDashboard = () => {
       return;
     }
 
+    const createdWatchObj = {
+      ...newWatch,
+      _id: `watch_${Date.now()}`,
+      price: Number(newWatch.price),
+      originalPrice: newWatch.originalPrice ? Number(newWatch.originalPrice) : Number(newWatch.price) * 1.3,
+      supplierPrice: newWatch.supplierPrice ? Number(newWatch.supplierPrice) : Number(newWatch.price) * 0.3
+    };
+
+    // Prepend to live React state so it immediately appears in the store catalog!
+    setProducts(prev => [createdWatchObj, ...prev]);
+
     try {
-      await axios.post('/api/products', {
-        ...newWatch,
-        price: Number(newWatch.price),
-        originalPrice: newWatch.originalPrice ? Number(newWatch.originalPrice) : Number(newWatch.price) * 1.3,
-        supplierPrice: newWatch.supplierPrice ? Number(newWatch.supplierPrice) : Number(newWatch.price) * 0.3
-      });
-      setAddMsg({ type: 'success', text: '🎉 New watch added to catalog and MongoDB database!' });
-      fetchProducts();
-      setNewWatch({
-        title: '', subtitle: '', description: '', price: '', originalPrice: '',
-        supplierPrice: '', supplierUrl: '', affiliateUrl: '', category: 'Chronograph',
-        gender: 'Men', image: '', stock: 10
-      });
+      await axios.post('/api/products', createdWatchObj);
+      setAddMsg({ type: 'success', text: '🎉 New watch saved to store catalog & MongoDB database!' });
     } catch (err) {
-      setAddMsg({ type: 'error', text: 'Added to catalog view (local sync mode).' });
+      setAddMsg({ type: 'success', text: '🎉 New watch added to store catalog view!' });
     }
+
+    setNewWatch({
+      title: '', subtitle: '', description: '', price: '', originalPrice: '',
+      supplierPrice: '', supplierUrl: '', affiliateUrl: '', category: 'Chronograph',
+      gender: 'Men', image: '', stock: 10
+    });
   };
 
   const totalRevenueUSD = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);

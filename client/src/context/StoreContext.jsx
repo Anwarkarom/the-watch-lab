@@ -205,6 +205,7 @@ export const StoreProvider = ({ children }) => {
   return (
     <StoreContext.Provider value={{
       products,
+      setProducts,
       loading,
       category, setCategory,
       gender, setGender,
