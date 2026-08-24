@@ -5,7 +5,6 @@ import { connectDB } from '../config/db.js';
 
 const router = express.Router();
 
-// In-memory fallback orders storage
 const inMemoryOrders = [];
 
 const generateTrackingNumber = () => {
@@ -29,13 +28,28 @@ router.post('/', async (req, res) => {
 
     const trackingNumber = generateTrackingNumber();
 
+    const formattedItems = items.map(i => ({
+      product: String(i.product || i._id || i.id || ''),
+      title: String(i.title || 'Watch'),
+      price: Number(i.price || 0),
+      quantity: Number(i.quantity || 1),
+      image: String(i.image || '')
+    }));
+
     const orderData = {
       trackingNumber,
-      customer,
-      items,
-      totalAmount,
-      currency: currency || 'USD',
-      paymentMethod: paymentMethod || 'COD',
+      customer: {
+        fullName: String(customer.fullName),
+        email: customer.email ? String(customer.email) : '',
+        phone: String(customer.phone),
+        city: String(customer.city),
+        address: String(customer.address),
+        notes: customer.notes ? String(customer.notes) : ''
+      },
+      items: formattedItems,
+      totalAmount: Number(totalAmount || 0),
+      currency: String(currency || 'USD'),
+      paymentMethod: String(paymentMethod || 'COD'),
       status: 'Order Placed',
       createdAt: new Date()
     };
@@ -45,9 +59,12 @@ router.post('/', async (req, res) => {
       try {
         const order = new Order(orderData);
         newOrder = await order.save();
+        console.log(`✅ Order saved to MongoDB Atlas! Tracking: ${newOrder.trackingNumber}`);
       } catch (dbErr) {
-        console.warn('DB save error, storing in memory:', dbErr.message);
+        console.error('❌ DB Save Error:', dbErr.message);
       }
+    } else {
+      console.warn('⚠️ Mongoose not connected (readyState !== 1), using in-memory store.');
     }
 
     if (!newOrder) {
@@ -62,6 +79,7 @@ router.post('/', async (req, res) => {
       order: newOrder
     });
   } catch (error) {
+    console.error('Error creating order:', error.message);
     res.status(500).json({ message: error.message });
   }
 });
